@@ -100,6 +100,11 @@ def main(base_path):
         print "You are processing:", i
         print "There are still {:d} left".format(num_imgs-n-1)
         print "=================>>>    <<<==================="
+
+        
+        f = open('tem.pkl', 'w')
+        pickle.dump(data, f)
+        f.close()
     return data        
 
 
