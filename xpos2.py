@@ -21,7 +21,6 @@ def init(base_path):
 
 def extract_each_frame(path):
     global h1,h2,h3,h4
-    h1,h2,h3,h4 = 0,0,0,0
 
     data = {}
 
@@ -161,8 +160,8 @@ if __name__ == "__main__":
 
 
         drawing = False
-
-
+        h1,h2,h3,h4 = 0,0,0,0
+        posx1, posx2, posy1, posy2 = 0,0,0,0
         data = main(base_path)
         out_file = os.path.join(out_path,'xpos.pkl')
 
