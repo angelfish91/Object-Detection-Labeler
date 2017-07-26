@@ -11,6 +11,8 @@ import argparse
 from pprint import pprint
 import pickle
 
+
+
 def init(base_path):
     listdir = os.listdir(base_path)
     full_path = [os.path.join(base_path, x) for x in listdir]
@@ -18,13 +20,15 @@ def init(base_path):
 
 
 def extract_each_frame(path):
-    
+    global h1,h2,h3,h4
+    h1,h2,h3,h4 = 0,0,0,0
+
     data = {}
 
     for count, i in  enumerate(range(n_class)):
         data[str(count+1)] = []
     
-
+    
     count = 0
     while count < n_class: 
 
@@ -50,16 +54,24 @@ def extract_each_frame(path):
             
             
         img = cv2.imread(path)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        text = str(count+1)+classname[count]
-        cv2.putText(img, str(text), (20,100), font, 1,(0,0,255),2,cv2.LINE_AA)
-
+        # add caption        
+        [height, width, depth] = img.shape
+        img = np.concatenate((np.zeros((50, width, depth),dtype = np.uint8), img ), axis = 0)
+        # add labeling infomation
+        font = cv2.FONT_HERSHEY_TRIPLEX
+        text = 'You are labeling {count}-{name}'.format(count = count +1,name = classname[count])  
+        cv2.putText(img, str(text), (5,30), font, 1,(0,0,255),2,cv2.LINE_AA)
+        # main part
         img2 = copy.deepcopy(img)
         cv2.namedWindow('xPos', cv2.WND_PROP_FULLSCREEN)
         cv2.setMouseCallback('xPos', roi)
+        
         while(1):
             cv2.imshow('xPos',img)
             k = cv2.waitKey(1) & 0xFF
+            
+            if k == ord('q'):
+                exit()
                 
             if k == ord('c'):
                 count +=1
@@ -75,16 +87,24 @@ def extract_each_frame(path):
                     data[str(tem1+1)] = []
                 print "Data has been refresh!!!"
                 pprint(data)
-
                 break
-
-            if k == 32:
-                print '==============>>', posx1,posy1,posx2,posy2
-                data[str(count+1)].append([posx1,posy1,posx2,posy2])
-
-            if k == ord('q'):
-                exit()
-
+            if k == ord(' '):
+                x1 = min([posx1, posx2]) 
+                y1 = min([posy1, posy2]) - 50
+                x2 = max([posx1, posx2])
+                y2 = max([posy1, posy2]) - 50               
+                local_height = y2-y1
+                local_width = x2-x1
+                if x1< 0 or y1 <0:
+                    print "Exception: bbox over limit"
+                elif (h1==x1 and h2==y1 and h3==x2 and h4==y2) or ( x2 >width or y2 > height):
+                    print "Exception: get same parameters"
+                else:
+                    print '==============>> {x1}-{y1}-{x2}-{y2} : {width}-{height}'.format(
+                            x1=x1,y1=y1,x2=x2,y2=y2, width=local_width, height=local_height)
+                    data[str(count+1)].append([x1,y1,x2,y2])
+                    h1,h2,h3,h4 = x1,y1,x2,y2
+                    
             if k == 27:
                 return None         
 
@@ -93,18 +113,30 @@ def main(base_path):
     num_imgs = len(full_path)
 
     data = {}
+    
 
-    for n , i in enumerate(full_path):
-        data[i] = extract_each_frame(i)
-        print "=================>>>    <<<==================="
-        print "You are processing:", i
-        print "There are still {:d} left".format(num_imgs-n-1)
-        print "=================>>>    <<<==================="
 
-        
-        f = open('tem.pkl', 'w')
-        pickle.dump(data, f)
-        f.close()
+    n = 0
+    while n < num_imgs:
+        i = full_path[n]
+        result = extract_each_frame(i)
+        if result is None:
+            if n-1 >= 0:
+                del data[full_path[n-1]]
+                n -=1
+        else:
+            data[i] = result
+            print "***********************************************"
+            print "You are processing:", i
+            print "There are still {:d} left".format(num_imgs-n-1)
+            print "***********************************************"
+            
+            f = open('tem.pkl', 'w')
+            pickle.dump(data, f)
+            f.close()
+            
+            n +=1
+
     return data        
 
 
@@ -128,7 +160,9 @@ if __name__ == "__main__":
         n_class = args.nclass
 
 
-        drawing = False    
+        drawing = False
+
+
         data = main(base_path)
         out_file = os.path.join(out_path,'xpos.pkl')
 
