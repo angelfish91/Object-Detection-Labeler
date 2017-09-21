@@ -1,4 +1,4 @@
-# xpos2
+﻿# xpos2
 help you to label the roi of pictures
 
 ## Dependency
@@ -41,9 +41,12 @@ jump to next picture
 
 **Q**    
 
-quit this program
+quit this program & save config.cfg which uesd to configurate the unfished work
+
+when trying to config xPos, keep tmp.pkl & config.cfg at current working path
 
 ## Usage Example:
 
 `python xpos2.py --img-path=D:\imgs --nclass=1`
 
+`python xpos2.py --img-path=D:\imgs --nclass=1 --config=1`
