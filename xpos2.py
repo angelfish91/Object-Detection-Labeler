@@ -19,7 +19,7 @@ def init(base_path):
     return full_path
 
 
-def extract_each_frame(path):
+def extract_each_frame(path, full_path):
     global h1,h2,h3,h4
 
     data = {}
@@ -70,6 +70,13 @@ def extract_each_frame(path):
             k = cv2.waitKey(1) & 0xFF
             
             if k == ord('q'):
+                with open('tem.pkl', 'r') as f:
+                    data = pickle.load(f)
+                labeled_imgs_path = data.keys()
+                unlabeled_imgs_path = list(set(full_path)-set(labeled_imgs_path))
+                with open("config.cfg", 'w') as f:
+                    for _ in unlabeled_imgs_path:
+                        f.writelines(_+"\n")
                 exit()
                 
             if k == ord('c'):
@@ -107,18 +114,25 @@ def extract_each_frame(path):
             if k == 27:
                 return None         
 
-def main(base_path):
-    full_path = init(base_path)
-    num_imgs = len(full_path)
+def main(base_path, args):
+    if not args.config:
+        full_path = init(base_path)
+        num_imgs = len(full_path)
 
-    data = {}
-    
-
+        data = {}
+    else:
+        with open("./config.cfg", "r") as f:
+            full_path = f.read().split("\n")
+            full_path = full_path[:-1]
+        num_imgs = len(full_path)
+        with open("./tem.pkl", "r") as f:
+            data = pickle.load(f)
+        print data
 
     n = 0
     while n < num_imgs:
         i = full_path[n]
-        result = extract_each_frame(i)
+        result = extract_each_frame(i, full_path)
         if result is None:
             if n-1 >= 0:
                 del data[full_path[n-1]]
@@ -149,6 +163,9 @@ if __name__ == "__main__":
                         metavar='/path/to/out/file', help='XML output path (default: Working Directory)')
     parser.add_argument('--nclass', type=int, default=2, 
                         metavar='N', help='nclass object to classify (default: 2)')
+    parser.add_argument('--config', type=int, default=0, 
+                        metavar='config', help='set True if the tool crash (default: False)')
+    
     args = parser.parse_args()
 
     classname = ['ball', 'basket']
@@ -162,7 +179,7 @@ if __name__ == "__main__":
         drawing = False
         h1,h2,h3,h4 = 0,0,0,0
         posx1, posx2, posy1, posy2 = 0,0,0,0
-        data = main(base_path)
+        data = main(base_path, args)
         out_file = os.path.join(out_path,'xpos.pkl')
 
 
