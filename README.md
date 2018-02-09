@@ -20,7 +20,8 @@ Hope you enjoy it.
 
 ## Usage：
 
-On terminal, just type:
+xpos.py is one class one object implement
+xpos2.py is multi-class multi-object implement
 
 `python xpos2.py`
 
