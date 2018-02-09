@@ -1,5 +1,8 @@
-﻿# xpos2
-help you to label the roi of pictures
+﻿# Position Labeler
+In field of object detection, we need firstly build dataset.
+This tool would help you to label the ROI of pictures into VOC format.
+Hope you enjoy it.
+
 
 ## Dependency
 
